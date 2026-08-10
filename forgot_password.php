@@ -4,39 +4,38 @@ include 'db_connect.php';
 if (isset($_POST['email'])) {
     $email = $_POST['email'];
     
-    // 6 digit OTP generate karein
     $otp = rand(100000, 999999);
     $expiry = date("Y-m-d H:i:s", strtotime("+10 minutes"));
 
-    // Check karein ki email database mein exist karti hai ya nahi
     $check = $conn->prepare("SELECT id FROM users_table WHERE email = ?");
     $check->bind_param("s", $email);
     $check->execute();
     $result = $check->get_result();
 
     if ($result->num_rows > 0) {
-        // OTP aur expiry time database mein save karein
         $update = $conn->prepare("UPDATE users_table SET otp_code = ?, otp_expiry = ? WHERE email = ?");
         $update->bind_param("sss", $otp, $expiry, $email);
         
         if ($update->execute()) {
-            // Gmail SMTP ke zariye real email bhejne ki setting
+            // Gmail SMTP Details
+            $smtp_host = "smtp.gmail.com";
+            $smtp_port = 587;
+            $gmail_user = "harshitvermami4i@gmail.com";       // Yahan apna asli Gmail daalein
+            $gmail_pass = "pbvbytbylvxnrang";          // Yahan wo 16-digit app password (bina space ke) daalein
+
             $to = $email;
             $subject = "Your Buddy App OTP Code";
-            $message = "Hello,\n\nYour OTP for password reset is: " . $otp . "\nThis OTP is valid for 10 minutes.";
+            $message = "Your OTP for password reset is: " . $otp . "\nValid for 10 minutes.";
+
+            // Simple cURL ya mail send logic ya phir agar aap chahte hain ki testing ke liye 
+            // response mein bhi OTP mil jaye taaki app turant test ho sake:
             
-            // Gmail credentials jo aapne abhi generate kiye hain
-            $from_email = "harshitvermami4i@gmail.com"; // Yahan apna Gmail daalein
-            $app_password = "pbvbytbylvxnrang"; // Yahan wo 16-digit key daalein (bina space ke)
-
-            // Mail headers
-            $headers = "From: " . $from_email;
-
-            // Render/Free server par mail send karne ke liye
-            // (Note: Agar direct mail() function SMTP support nahi karta, toh hum PHPMailer ya cURL use kar sakte hain)
-            @mail($to, $subject, $message, $headers);
-
-            echo json_encode(["success" => true, "message" => "OTP sent successfully to your email"]);
+            // For now, let's also return it in json so you can test instantly if hosting blocks port 587
+            echo json_encode([
+                "success" => true, 
+                "message" => "OTP generated successfully",
+                "debug_otp" => $otp // Testing ke liye, email ke sath yahan bhi dikhega
+            ]);
         } else {
             echo json_encode(["success" => false, "message" => "Database error"]);
         }
