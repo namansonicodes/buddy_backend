@@ -17,24 +17,11 @@ if (isset($_POST['email'])) {
         $update->bind_param("sss", $otp, $expiry, $email);
         
         if ($update->execute()) {
-            // Gmail SMTP Details
-            $smtp_host = "smtp.gmail.com";
-            $smtp_port = 587;
-            $gmail_user = "harshitvermami4i@gmail.com";       // Yahan apna asli Gmail daalein
-            $gmail_pass = "pbvbytbylvxnrang";          // Yahan wo 16-digit app password (bina space ke) daalein
-
-            $to = $email;
-            $subject = "Your Buddy App OTP Code";
-            $message = "Your OTP for password reset is: " . $otp . "\nValid for 10 minutes.";
-
-            // Simple cURL ya mail send logic ya phir agar aap chahte hain ki testing ke liye 
-            // response mein bhi OTP mil jaye taaki app turant test ho sake:
-            
-            // For now, let's also return it in json so you can test instantly if hosting blocks port 587
+            // Seedha OTP response mein bhej rahe hain taaki app usko utha sake
             echo json_encode([
                 "success" => true, 
                 "message" => "OTP generated successfully",
-                "debug_otp" => $otp // Testing ke liye, email ke sath yahan bhi dikhega
+                "otp" => $otp 
             ]);
         } else {
             echo json_encode(["success" => false, "message" => "Database error"]);
